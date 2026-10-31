@@ -1,4 +1,31 @@
-# Versioned consent purposes (C8). Populated by W02/W05.
-# Each purpose is separate, versioned and revocable. Legal text belongs to a
-# lawyer; this file holds the identifiers and current versions only.
-purposes: []
+# Versioned consent purposes (C8). Each purpose is separate, versioned and
+# revocable. Legal text belongs to a lawyer; the Spanish text below is a
+# plain-language placeholder describing the mechanism, not final legal wording.
+#
+# Purposes that are part of core interpretation / legal basis and do NOT require
+# guardian authorization for minors: terms_of_service, privacy_policy.
+# All other purposes require guardian authorization for users under 18.
+purposes:
+  - key: terms_of_service
+    version: 1
+    requires_guardian_for_minor: false
+    text_es: >-
+      Acepto los Términos de Servicio de la aplicación Intérprete LSC.
+  - key: privacy_policy
+    version: 1
+    requires_guardian_for_minor: false
+    text_es: >-
+      He leído la Política de Privacidad y entiendo cómo se tratan mis datos.
+  - key: landmark_contribution
+    version: 1
+    requires_guardian_for_minor: true
+    text_es: >-
+      Autorizo compartir, de forma seudonimizada y opcional, los puntos de
+      referencia (landmarks) de mis señas para mejorar el modelo. Nunca se
+      envía ni almacena video. Puedo revocar esta autorización cuando quiera.
+  - key: aggregate_analytics
+    version: 1
+    requires_guardian_for_minor: true
+    text_es: >-
+      Autorizo el uso de métricas agregadas y anónimas de uso para mejorar la
+      aplicación.

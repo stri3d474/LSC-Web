@@ -1,9 +1,9 @@
 """Authentication and authorization dependencies.
 
 SECURITY(AUTH-01): deny by default. Every route declares exactly one of these
-dependencies. W01 fixes their signatures and fail-closed behavior; the token
-verification body is implemented in W02 (it raises until then, so no route can
-accidentally run unauthenticated).
+dependencies. Token verification uses the container's ``TokenService`` (C5
+ES256 JWT). Failures return generic problem+json; the specific reason is logged
+server-side only.
 
 - ``require_auth``   -> a verified ``Principal`` or 401.
 - ``require_roles``  -> factory; 403 unless the principal holds a listed role.
@@ -24,18 +24,44 @@ from lsc_api.core.errors import (
 )
 from lsc_api.core.security.principal import Principal
 
+_BEARER_PREFIX = "Bearer "
+
+
+def _bearer_token(request: Request) -> str:
+    """Extract the Bearer access token from the Authorization header.
+
+    Failure modes: ``AuthenticationError`` (401) if the header is missing or not
+    a Bearer token.
+    """
+
+    header = request.headers.get("Authorization")
+    if not header or not header.startswith(_BEARER_PREFIX):
+        raise AuthenticationError("missing bearer token")
+    token = header[len(_BEARER_PREFIX) :].strip()
+    if not token:
+        raise AuthenticationError("empty bearer token")
+    return token
+
 
 async def _extract_principal(request: Request) -> Principal:
     """Verify the Bearer access token and return the principal.
 
-    Implemented in W02 (JWT ES256 verification against the rotating keyring).
-    Until then it fails closed so no protected route can run without auth.
-
-    Failure modes: ``AuthenticationError`` (401) if the token is missing,
-    malformed, expired, or signed by an unknown key.
+    Uses the ``TokenService`` from the app container. Fails closed if the
+    container is unavailable.
+    Failure modes: ``AuthenticationError`` (401) for any missing/invalid token.
     """
 
-    raise AuthenticationError("token verification not yet implemented (W02)")
+    # Imported here to avoid a circular import at module load time.
+    from lsc_api.core.deps_providers import get_token_service
+
+    token = _bearer_token(request)
+    try:
+        service = get_token_service(request)
+    except Exception as exc:  # noqa: BLE001 - container/wiring unavailable
+        # Fail closed as unauthenticated rather than leaking a 5xx on protected
+        # routes when the token service is not available.
+        raise AuthenticationError("auth not available") from exc
+    return service.verify(token)
 
 
 async def require_auth(request: Request) -> Principal:

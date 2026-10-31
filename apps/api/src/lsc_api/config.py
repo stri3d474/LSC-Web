@@ -13,7 +13,7 @@ from enum import Enum
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -36,6 +36,7 @@ class Settings(BaseSettings):
         env_file=None,  # never read a .env in the image; env comes from the platform
         extra="forbid",
         frozen=True,
+        populate_by_name=True,
     )
 
     # --- Environment and project. ---
@@ -49,8 +50,12 @@ class Settings(BaseSettings):
     bucket_exports: str
 
     # --- CORS: explicit allow-list, no wildcard. ---
-    allowed_origins: tuple[str, ...] = Field(
-        description="Exact origins permitted by CORS (admin + listener hosts)."
+    # Provided as a comma-separated string in the environment (pydantic-settings
+    # treats collection-typed fields as JSON, so we parse a plain string here and
+    # expose the tuple via ``allowed_origins``).
+    allowed_origins_raw: str = Field(
+        alias="LSC_ALLOWED_ORIGINS",
+        description="Comma-separated exact origins permitted by CORS.",
     )
 
     # --- JWT (C5). ---
@@ -74,23 +79,23 @@ class Settings(BaseSettings):
 
         return self.environment is Environment.PROD
 
-    @field_validator("allowed_origins", mode="before")
-    @classmethod
-    def _split_origins(cls, value: object) -> object:
-        """Accept a comma-separated string from the environment."""
+    @property
+    def allowed_origins(self) -> tuple[str, ...]:
+        """Parsed, validated exact CORS origins (no wildcard).
 
-        if isinstance(value, str):
-            return tuple(item.strip() for item in value.split(",") if item.strip())
-        return value
+        Failure modes: ``ValueError`` if empty or if a wildcard is present.
+        """
 
-    @field_validator("allowed_origins")
-    @classmethod
-    def _reject_wildcard(cls, value: tuple[str, ...]) -> tuple[str, ...]:
-        if not value:
+        origins = tuple(
+            item.strip()
+            for item in self.allowed_origins_raw.split(",")
+            if item.strip()
+        )
+        if not origins:
             raise ValueError("allowed_origins must list at least one exact origin")
-        if "*" in value:
+        if "*" in origins:
             raise ValueError("CORS wildcard '*' is not allowed (deny by default)")
-        return value
+        return origins
 
 
 @lru_cache(maxsize=1)

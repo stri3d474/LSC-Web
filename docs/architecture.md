@@ -47,12 +47,41 @@ router  ->  service  ->  repository  ->  infra
 5. The route's auth dependency runs (deny by default).
 6. Errors become RFC 9457 problem+json with a stable `code` and no internals.
 
-## Endpoints present in W01
+## Endpoints present (W01–W02)
 - `GET /healthz`, `GET /readyz` — public probes, no sensitive data.
-- `GET /.well-known/jwks.json` — public; empty key set until W02 wires the
-  keyring.
-- `GET /v1/me/ping` — placeholder proving the `require_auth` wiring; replaced by
-  the real identity router in W02.
+- `GET /.well-known/jwks.json` — public; serves the active ES256 public keys
+  from the keyring (empty when the container is not wired).
+- Identity (W02): `POST /v1/auth/session`, `POST /v1/auth/refresh`,
+  `POST /v1/auth/logout`, `GET /v1/me`.
+- Consent (W02): `GET /v1/consents/purposes` (public), `GET /v1/consents`,
+  `PUT /v1/consents/{purpose}`.
+
+## Composition
+`composition.build_container` assembles the service `Container` from concrete
+infra adapters (DocumentStore, SecretStore, FirebaseVerifier) and attaches it to
+`app.state`. Routers reach services only through the `core/deps_providers`
+FastAPI dependencies. Type-only imports between `container`, `deps_providers`
+and the module routers are kept under `TYPE_CHECKING` to avoid import cycles.
+
+## Identity and sessions (W02)
+- `POST /auth/session` verifies a Firebase ID token (revocation-checked),
+  requires a verified email for the email provider (anonymous allowed), upserts
+  a minimal `users/{uid}` (no email/name), resolves roles (user record +
+  `org_members`) and tier (`EntitlementsPort`, default `free` until W03) on the
+  server, and issues a 15-minute ES256 access token plus an opaque refresh
+  token. Web clients get the refresh token as a scoped HttpOnly cookie; mobile
+  gets it in the body.
+- Refresh families (`sessions/{sid}`): the token is stored only as SHA-256,
+  rotates on every use, and reuse of a consumed token revokes the whole family.
+  A per-user session cap bounds active families.
+- `require_mfa` demands the `mfa` claim (set from the Firebase second factor)
+  for admin/reviewer actions.
+
+## Consent (W02)
+Versioned, revocable purposes from `config/consent_purposes.yaml`. `PUT` appends
+an immutable record; minors (age band read server-side) need a guardian
+authorization for every purpose except terms/privacy/core. History is retained
+as pseudonymized legal proof.
 
 ## Security and privacy posture (W01)
 - No secret defaults: missing configuration fails at startup (SECURITY(CFG-01)).

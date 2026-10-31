@@ -11,11 +11,16 @@ auth dependency (deny by default).
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from lsc_api.config import Settings, get_settings
+
+if TYPE_CHECKING:
+    from lsc_api.core.container import Container
 from lsc_api.core.errors import (
     DomainError,
     generic_problem,
@@ -27,7 +32,9 @@ from lsc_api.core.middleware import (
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
-from lsc_api.core.security.deps import public, require_auth
+from lsc_api.core.security.deps import public
+from lsc_api.modules.consent.router import router as consent_router
+from lsc_api.modules.identity.router import router as identity_router
 
 _LOG = get_logger("lsc_api.main")
 
@@ -52,36 +59,21 @@ def _build_health_router() -> APIRouter:
     return router
 
 
-def _build_v1_router() -> APIRouter:
-    """The ``/v1`` surface. Feature routers are included by later specs.
-
-    The placeholder below exists so the factory demonstrates the deny-by-default
-    rule: every route declares an explicit auth dependency. It is replaced by
-    real module routers in W02+.
-    """
-
-    router = APIRouter(prefix="/v1")
-
-    # Placeholder protected route: proves the auth dependency wiring. Removed
-    # when the identity module (W02) mounts the real /v1/me router.
-    @router.get("/me/ping", dependencies=[Depends(require_auth)], include_in_schema=False)
-    async def me_ping() -> dict[str, str]:
-        return {"status": "authenticated"}
-
-    return router
-
-
 def _build_jwks_router() -> APIRouter:
-    """JWKS endpoint at the root path (C6). Public. Populated in W02."""
+    """JWKS endpoint at the root path (C6). Public; served from the keyring."""
 
     router = APIRouter(tags=["auth"])
 
     @router.get("/.well-known/jwks.json", dependencies=[Depends(public)])
-    async def jwks() -> dict[str, list]:
-        """Published verification keys. The keyring is implemented in W02."""
+    async def jwks(request: Request) -> dict[str, list]:
+        """Published ES256 verification keys (all active kids)."""
 
-        # Deliberately empty until the keyring is wired; shape matches JWKS.
-        return {"keys": []}
+        container = request.app.state.container
+        if container is None:
+            # No keyring wired: publish an empty, well-formed JWKS rather than
+            # leaking an error. Verification fails closed independently.
+            return {"keys": []}
+        return container.keyring.jwks()
 
     return router
 
@@ -101,11 +93,18 @@ def _register_exception_handlers(app: FastAPI) -> None:
         return generic_problem(request, 500, "internal_error", "Internal server error")
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    container: "Container | None" = None,
+) -> FastAPI:
     """Create and configure the FastAPI application.
 
     Inputs: optional ``settings`` (defaults to ``get_settings()``, which fails
-    at startup if required configuration is missing).
+    at startup if required configuration is missing); optional ``container``
+    holding the constructed services. The container is built from concrete
+    infra adapters by the deployment entrypoint and attached to ``app.state``.
+    Routes that need it (auth, JWKS, feature endpoints) fail closed if it is
+    absent.
     Outputs: a configured ``FastAPI`` app.
     Failure modes: ``pydantic.ValidationError`` from ``get_settings`` when
     configuration is missing or invalid (fail closed, no insecure defaults).
@@ -137,10 +136,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         max_age=600,
     )
 
+    # The container is attached when provided by the deployment entrypoint.
+    # Routes guarded by require_auth fail closed (401) if it is absent.
+    app.state.container = container
+
     _register_exception_handlers(app)
 
     app.include_router(_build_health_router())
     app.include_router(_build_jwks_router())
-    app.include_router(_build_v1_router())
+    app.include_router(identity_router)
+    app.include_router(consent_router)
 
     return app

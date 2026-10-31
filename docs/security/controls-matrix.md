@@ -8,6 +8,11 @@ land; W01 establishes the cross-cutting controls.
 |----|------------------------------------|---------|---------|
 | CFG-01  | ASVS V14.1 (config) | No secret defaults; missing config fails at startup | `apps/api/src/lsc_api/config.py` |
 | AUTH-01 | ASVS V4.1; API1/API5 (BOLA/BFLA) | Deny by default; every route declares an auth dependency | `apps/api/src/lsc_api/core/security/deps.py`, `apps/api/src/lsc_api/main.py` |
+| AUTH-02 | ASVS V3 (session/JWT) | ES256 access JWT (15 min), claims per C5, rotating keyring | `apps/api/src/lsc_api/core/security/keyring.py`, `apps/api/src/lsc_api/core/security/tokens.py` |
+| AUTH-03 | ASVS V3.3 (session termination) | Refresh families: hashed at rest, single-use rotation, reuse revokes family, per-user cap | `apps/api/src/lsc_api/modules/identity/service.py`, `apps/api/src/lsc_api/modules/identity/repository.py` |
+| AUTH-04 | API5 (BFLA) | Roles/tier resolved server-side only; never read from the client | `apps/api/src/lsc_api/modules/identity/service.py` |
+| AUTH-05 | ASVS V3.4 (cookie-based session), CSRF | Web refresh cookie HttpOnly/Secure/SameSite=Strict scoped to /v1/auth + Origin check | `apps/api/src/lsc_api/modules/identity/router.py` |
+| AUDIT-01 | ASVS V7.2 (log integrity) | Append-only, hash-chained audit entries | `apps/api/src/lsc_api/modules/audit/domain.py`, `apps/api/src/lsc_api/modules/audit/repository.py` |
 | SEC-01  | ASVS V6.4 (secret management) | Secrets only from Secret Manager, fetched by name | `apps/api/src/lsc_api/infra/secrets.py` |
 | LOG-01  | ASVS V7.1 (logging), V8 (data protection) | Structured logs with PII/secret redaction; access log without bodies | `apps/api/src/lsc_api/core/logging.py`, `apps/api/src/lsc_api/core/middleware.py` |
 | ERR-01  | ASVS V7.4 (error handling) | problem+json with stable codes, no internals | `apps/api/src/lsc_api/core/errors.py` |
