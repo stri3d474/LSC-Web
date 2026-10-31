@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es-CO">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Strict Content-Security-Policy: no inline scripts/styles, no external
+      origins except the API and Firebase Auth endpoints. The hosting layer
+      should also send this as a response header; it is declared here for the
+      dev server and as documentation of intent.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com; font-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+    />
+    <title>LSC — Panel administrativo</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -29,6 +29,10 @@ land; W01 establishes the cross-cutting controls.
 | PRIV-02 | Ley 1581 (minimization) | Correction documents contain no uid/email/device id | `apps/api/src/lsc_api/modules/community/repository.py` |
 | PRIV-03 | Ley 1581 (purpose limitation) | Corrections require current landmark_contribution consent + guardian for minors; shape/size/dedupe/daily caps | `apps/api/src/lsc_api/modules/community/service.py` |
 | PRIV-04 | Ley 1581 (habeas data) | Export job + idempotent, resumable deletion; consent history kept pseudonymized | `apps/api/src/lsc_api/modules/privacy/service.py`, `config/retention.yaml` |
+| WEB-01 | ASVS V3.5 (token storage) | Admin access token in memory only; refresh via HttpOnly cookie; 15-min idle logout | `apps/admin/src/auth/AuthProvider.tsx`, `apps/admin/src/auth/tokenHolder.ts` |
+| WEB-02 | ASVS V14.4 (CSP) | Strict CSP, no inline scripts/styles, no external origins; build emits no inline code | `apps/admin/index.html`, `apps/admin/vite.config.ts` |
+| WEB-03 | API5 (BFLA) | Role-guarded routes mirroring backend role checks | `apps/admin/src/RoleGuard.tsx`, `apps/admin/src/App.tsx` |
+| WEB-04 | ASVS V7.2 (log integrity) | Audit hash chain re-verified client-side with OK/BROKEN indicator | `apps/admin/src/audit/verifyChain.ts`, `apps/admin/src/screens/Audit.tsx` |
 | SEC-01  | ASVS V6.4 (secret management) | Secrets only from Secret Manager, fetched by name | `apps/api/src/lsc_api/infra/secrets.py` |
 | LOG-01  | ASVS V7.1 (logging), V8 (data protection) | Structured logs with PII/secret redaction; access log without bodies | `apps/api/src/lsc_api/core/logging.py`, `apps/api/src/lsc_api/core/middleware.py` |
 | ERR-01  | ASVS V7.4 (error handling) | problem+json with stable codes, no internals | `apps/api/src/lsc_api/core/errors.py` |

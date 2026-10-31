@@ -64,3 +64,10 @@ class AuditService:
         )
         await self._repo.append(entry)
         return entry
+
+    async def list_entries(
+        self, *, actor: str | None = None, action: str | None = None
+    ) -> list[AuditEntry]:
+        """List audit entries for the admin panel (hash chain verified client-side)."""
+
+        return await self._repo.list_entries(actor=actor, action=action)

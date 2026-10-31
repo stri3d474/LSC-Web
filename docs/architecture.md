@@ -155,6 +155,23 @@ as pseudonymized legal proof.
 
 ## Frontend
 `apps/admin` (staff SPA) and `apps/listener` (PWA) are pnpm workspaces sharing
-`tsconfig.base.json` and consuming `packages/api-client` generated from the
-OpenAPI schema. Their application code is added by later specs; W01 provides only
-the workspace scaffolding.
+`tsconfig.base.json` and consuming `packages/api-client`. `packages/ui` holds
+shared accessible components (table, form field, dialog, status badge, button).
+
+### Admin panel (W06)
+- React 18 + Vite + React Router + TanStack Query + Tailwind, strict TypeScript.
+- Auth: Firebase web sign-in with a mandatory enrolled second factor, then
+  `POST /auth/session` with `client_type: "web"`. The access token lives in
+  memory only (`tokenHolder`); refresh uses the HttpOnly cookie; a 15-minute
+  idle timer forces sign-out; routes are role-guarded to mirror the backend.
+- Screens: Models (upload + data key, activate/deactivate with channel/rollout),
+  Vocabulary (versioned concepts/variants), Corrections queue (filters, a
+  canvas `SkeletonPlayer` animating the `[T,F]` landmark sequence per C1,
+  approve/reject, JSONL export), Organizations (verification codes shown once,
+  copy), Audit (client-side hash-chain verification with OK/BROKEN), aggregate
+  Metrics (counts only).
+- Strict CSP: no inline scripts/styles, no external origins beyond the API and
+  Firebase Auth; server text rendered as text; all strings in a typed es-CO
+  dictionary. The production build emits no inline code.
+- The backend adds `GET /v1/admin/audit` (admin + MFA) so the panel can fetch
+  and verify the hash-chained audit log.

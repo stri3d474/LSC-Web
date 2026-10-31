@@ -1,0 +1,95 @@
+// Typed Spanish (es-CO) dictionary. All user-facing strings live here; the app
+// renders server text as text only and never interpolates HTML.
+export const t = {
+  appTitle: 'Panel administrativo LSC',
+  nav: {
+    models: 'Modelos',
+    vocabulary: 'Vocabulario',
+    corrections: 'Correcciones',
+    organizations: 'Organizaciones',
+    audit: 'Auditoría',
+    metrics: 'Métricas',
+    signOut: 'Cerrar sesión',
+  },
+  auth: {
+    signInTitle: 'Iniciar sesión',
+    signInButton: 'Entrar con Google',
+    mfaRequired: 'Se requiere un segundo factor de autenticación.',
+    idleLogout: 'Sesión cerrada por inactividad.',
+    accessDenied: 'No tienes permisos para acceder a esta sección.',
+  },
+  models: {
+    title: 'Versiones de modelo',
+    upload: 'Subir paquete',
+    packageFile: 'Archivo del paquete (.zip)',
+    dataKey: 'Llave de datos (base64)',
+    activate: 'Activar',
+    deactivate: 'Desactivar',
+    channel: 'Canal',
+    rollout: 'Despliegue (%)',
+    version: 'Versión',
+    profile: 'Perfil',
+    status: 'Estado',
+  },
+  vocabulary: {
+    title: 'Vocabulario',
+    version: 'Versión de vocabulario',
+    concept: 'Concepto',
+    gloss: 'Glosa',
+    esText: 'Texto en español',
+  },
+  corrections: {
+    title: 'Cola de correcciones',
+    filterStatus: 'Estado',
+    approve: 'Aprobar',
+    reject: 'Rechazar',
+    reason: 'Motivo',
+    export: 'Exportar aprobadas (JSONL)',
+    predicted: 'Predicho',
+    proposed: 'Propuesto',
+    region: 'Región',
+    context: 'Contexto',
+  },
+  organizations: {
+    title: 'Organizaciones',
+    orgId: 'ID de organización',
+    issueCode: 'Generar código',
+    codeOnce: 'Este código se muestra una sola vez. Cópialo ahora.',
+    copy: 'Copiar',
+  },
+  audit: {
+    title: 'Registro de auditoría',
+    actor: 'Actor',
+    action: 'Acción',
+    date: 'Fecha',
+    chainOk: 'Cadena íntegra',
+    chainBroken: 'Cadena ROTA',
+    verify: 'Verificar cadena',
+  },
+  metrics: {
+    title: 'Métricas agregadas',
+    pendingCorrections: 'Correcciones pendientes',
+    activeModels: 'Modelos activos',
+  },
+  common: {
+    cancel: 'Cancelar',
+    confirm: 'Confirmar',
+    loading: 'Cargando…',
+    error: 'Ocurrió un error',
+    empty: 'No hay datos',
+  },
+  errors: {
+    unauthenticated: 'Debes iniciar sesión.',
+    forbidden: 'No tienes permiso para esta acción.',
+    mfa_required: 'Se requiere autenticación de dos factores.',
+    validation_error: 'La solicitud no es válida.',
+    conflict: 'La operación entra en conflicto con el estado actual.',
+    rate_limited: 'Demasiadas solicitudes. Intenta más tarde.',
+    not_found: 'No se encontró el recurso.',
+    unknown: 'Error inesperado.',
+  } as Record<string, string>,
+};
+
+export function errorMessage(code: string): string {
+  return t.errors[code] ?? t.errors.unknown ?? 'Error';
+}

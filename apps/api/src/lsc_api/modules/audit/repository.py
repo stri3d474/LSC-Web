@@ -47,6 +47,7 @@ class AuditRepository:
             _ENTRIES,
             entry.entry_id,
             {
+                "entry_id": entry.entry_id,
                 "actor": entry.actor,
                 "action": entry.action,
                 "target": entry.target,
@@ -62,3 +63,34 @@ class AuditRepository:
 
         doc = await self._store.get(_HEAD_COLLECTION, _HEAD_DOC)
         return GENESIS_PREV_HASH if doc is None else str(doc["hash"])
+
+    async def list_entries(
+        self, *, actor: str | None = None, action: str | None = None, limit: int = 100
+    ) -> list[AuditEntry]:
+        """List audit entries, optionally filtered by actor and/or action.
+
+        Entries are returned so the admin panel can verify the hash chain
+        client-side. Failure modes: ``UpstreamError`` on store failure.
+        """
+
+        where: list[tuple[str, str, object]] = []
+        if actor is not None:
+            where.append(("actor", "==", actor))
+        if action is not None:
+            where.append(("action", "==", action))
+        rows, _ = await self._store.query(
+            _ENTRIES, where=where or None, order_by="at", limit=limit
+        )
+        return [
+            AuditEntry(
+                entry_id=str(r.get("entry_id", "")),
+                actor=str(r["actor"]),
+                action=str(r["action"]),
+                target=(str(r["target"]) if r.get("target") else None),
+                metadata=dict(r.get("metadata", {})),
+                at=str(r["at"]),
+                prev_hash=str(r["prev_hash"]),
+                entry_hash=str(r["entry_hash"]),
+            )
+            for r in rows
+        ]

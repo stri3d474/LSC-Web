@@ -3,5 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "description": "TypeScript API client generated from the backend OpenAPI schema.",
-  "type": "module"
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "generate": "openapi-typescript ../../apps/api/openapi.json -o src/schema.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "openapi-typescript": "6.7.6",
+    "typescript": "5.4.5"
+  }
 }

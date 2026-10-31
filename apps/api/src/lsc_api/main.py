@@ -33,6 +33,7 @@ from lsc_api.core.middleware import (
     SecurityHeadersMiddleware,
 )
 from lsc_api.core.security.deps import public
+from lsc_api.modules.audit.router import router as audit_router
 from lsc_api.modules.billing.router import router as billing_router
 from lsc_api.modules.community.router import router as community_router
 from lsc_api.modules.consent.router import router as consent_router
@@ -154,5 +155,6 @@ def create_app(
     app.include_router(models_router)
     app.include_router(community_router)
     app.include_router(privacy_router)
+    app.include_router(audit_router)
 
     return app
