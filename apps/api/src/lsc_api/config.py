@@ -67,6 +67,12 @@ class Settings(BaseSettings):
     # --- Play Integrity enforcement mode. ---
     integrity_mode: Literal["enforce", "log_only"] = "log_only"
 
+    # --- Google Play billing (W03). ---
+    play_package_name: str
+    # RTDN push: the OIDC audience and the pushing service-account email.
+    rtdn_oidc_audience: str
+    rtdn_service_account_email: str
+
     # --- Feature flags. ---
     server_head_enabled: bool = False
 

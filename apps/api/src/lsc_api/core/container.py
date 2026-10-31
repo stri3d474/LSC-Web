@@ -24,7 +24,11 @@ from lsc_api.core.security.tokens import TokenService
 if TYPE_CHECKING:
     # Imported for type hints only; importing the module services at runtime
     # would create a cycle (service -> __init__ -> router -> container).
+    from lsc_api.infra.oidc import OidcVerifier
     from lsc_api.modules.audit.service import AuditService
+    from lsc_api.modules.billing.entitlements import EntitlementsService
+    from lsc_api.modules.billing.service import BillingService
+    from lsc_api.modules.billing.verification_service import VerificationService
     from lsc_api.modules.consent.service import ConsentService
     from lsc_api.modules.identity.service import IdentityService
 
@@ -44,4 +48,8 @@ class Container:
     identity_service: IdentityService
     consent_service: ConsentService
     audit_service: AuditService
+    billing_service: "BillingService"
+    entitlements_service: "EntitlementsService"
+    verification_service: "VerificationService"
     rate_limiter: RateLimiter | None = None
+    oidc_verifier: "OidcVerifier | None" = None

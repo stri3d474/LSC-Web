@@ -1,4 +1,48 @@
-# Billing products and tiers (server-authoritative). Populated by W03.
-# The client never decides tier; entitlements are computed from verified
-# Play purchases and verification grants against these definitions.
-products: []
+# Billing products and tiers (server-authoritative, C6/W03).
+# Each product maps a Google Play product_id to a tier and the feature ids it
+# unlocks. Feature ids are stable identifiers the client reads from
+# GET /me/entitlements; the client never decides them.
+#
+# Feature ids:
+#   interpret_basic      on-device interpretation, base vocabulary
+#   interpret_full_vocab full vocabulary model
+#   avatar               text -> LSC avatar
+#   messaging            asynchronous messaging (P2)
+#   calls                live video calls (P3)
+products:
+  - product_id: lsc.professional.monthly
+    tier: professional
+    features:
+      - interpret_basic
+      - interpret_full_vocab
+      - avatar
+      - messaging
+  - product_id: lsc.professional.yearly
+    tier: professional
+    features:
+      - interpret_basic
+      - interpret_full_vocab
+      - avatar
+      - messaging
+
+# Features granted to each non-purchase tier. Free is always available; the
+# community tier is granted by redeeming an organization verification code.
+tier_features:
+  free:
+    - interpret_basic
+  community:
+    - interpret_basic
+    - interpret_full_vocab
+    - avatar
+    - messaging
+  professional:
+    - interpret_basic
+    - interpret_full_vocab
+    - avatar
+    - messaging
+  institutional:
+    - interpret_basic
+    - interpret_full_vocab
+    - avatar
+    - messaging
+    - calls

@@ -33,6 +33,7 @@ from lsc_api.core.middleware import (
     SecurityHeadersMiddleware,
 )
 from lsc_api.core.security.deps import public
+from lsc_api.modules.billing.router import router as billing_router
 from lsc_api.modules.consent.router import router as consent_router
 from lsc_api.modules.identity.router import router as identity_router
 
@@ -146,5 +147,6 @@ def create_app(
     app.include_router(_build_jwks_router())
     app.include_router(identity_router)
     app.include_router(consent_router)
+    app.include_router(billing_router)
 
     return app

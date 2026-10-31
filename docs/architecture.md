@@ -55,6 +55,23 @@ router  ->  service  ->  repository  ->  infra
   `POST /v1/auth/logout`, `GET /v1/me`.
 - Consent (W02): `GET /v1/consents/purposes` (public), `GET /v1/consents`,
   `PUT /v1/consents/{purpose}`.
+- Billing/entitlements (W03): `GET /v1/billing/products`,
+  `POST /v1/billing/play/verify`, `GET /v1/me/entitlements`,
+  `POST /v1/internal/play/rtdn` (Pub/Sub OIDC), `POST /v1/verification/redeem`,
+  `POST /v1/orgs/{org_id}/verification-codes`.
+
+## Billing and entitlements (W03)
+- `EntitlementsService` implements the identity `EntitlementsPort`: it derives
+  tier, features and state only from server-verified facts (Play purchases,
+  community verification, org membership). The strongest active source wins.
+- Play verification requires the purchase's obfuscated account id to equal the
+  caller's HMAC account id (`HMAC-SHA256(uid, pepper)`), so a token replayed for
+  another account is rejected. Tokens are stored only as SHA-256. Pending (cash)
+  purchases grant nothing.
+- RTDN is a trigger only: the handler verifies the Google OIDC token, then
+  re-queries Play for authoritative state.
+- Verification codes are single-use, expiring, high-entropy and stored hashed;
+  redeeming grants `verified_deaf` + `community`, audited.
 
 ## Composition
 `composition.build_container` assembles the service `Container` from concrete

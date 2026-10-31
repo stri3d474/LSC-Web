@@ -13,6 +13,12 @@ land; W01 establishes the cross-cutting controls.
 | AUTH-04 | API5 (BFLA) | Roles/tier resolved server-side only; never read from the client | `apps/api/src/lsc_api/modules/identity/service.py` |
 | AUTH-05 | ASVS V3.4 (cookie-based session), CSRF | Web refresh cookie HttpOnly/Secure/SameSite=Strict scoped to /v1/auth + Origin check | `apps/api/src/lsc_api/modules/identity/router.py` |
 | AUDIT-01 | ASVS V7.2 (log integrity) | Append-only, hash-chained audit entries | `apps/api/src/lsc_api/modules/audit/domain.py`, `apps/api/src/lsc_api/modules/audit/repository.py` |
+| BILL-01 | API Top 10 (business logic), ASVS V1.11 | Subscription state always from a fresh Play query, never client/RTDN body | `apps/api/src/lsc_api/modules/billing/service.py`, `apps/api/src/lsc_api/infra/play.py` |
+| BILL-02 | ASVS V8.1 (sensitive data) | Purchases keyed by SHA-256 of the token; raw token never stored | `apps/api/src/lsc_api/modules/billing/repository.py` |
+| BILL-03 | API1 (BOLA) | HMAC account id binds a purchase to its account; replay for another account rejected | `apps/api/src/lsc_api/core/security/accountid.py`, `apps/api/src/lsc_api/modules/billing/service.py` |
+| ENT-01 | API5 (BFLA) | Tier/features/state derived only from verified facts | `apps/api/src/lsc_api/modules/billing/entitlements.py` |
+| RTDN-01 | API2 (broken auth) | Pub/Sub push verifies Google OIDC token (audience + service account) | `apps/api/src/lsc_api/infra/oidc.py`, `apps/api/src/lsc_api/modules/billing/router.py` |
+| VERIFY-01 | ASVS V2.1 (verification), API4 | Single-use, expiring, high-entropy codes stored hashed; redemption audited + rate-limited | `apps/api/src/lsc_api/modules/billing/orgs_repository.py`, `apps/api/src/lsc_api/modules/billing/verification_service.py` |
 | SEC-01  | ASVS V6.4 (secret management) | Secrets only from Secret Manager, fetched by name | `apps/api/src/lsc_api/infra/secrets.py` |
 | LOG-01  | ASVS V7.1 (logging), V8 (data protection) | Structured logs with PII/secret redaction; access log without bodies | `apps/api/src/lsc_api/core/logging.py`, `apps/api/src/lsc_api/core/middleware.py` |
 | ERR-01  | ASVS V7.4 (error handling) | problem+json with stable codes, no internals | `apps/api/src/lsc_api/core/errors.py` |
