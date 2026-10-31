@@ -76,6 +76,15 @@ class Settings(BaseSettings):
     # --- Feature flags. ---
     server_head_enabled: bool = False
 
+    # --- Model manifest verification (W04). ---
+    # Pinned Ed25519 public keys for manifest signatures, provided as
+    # "key_id:base64(32-byte-pubkey)" entries, comma-separated. Parsed via the
+    # ``manifest_verify_keys`` property.
+    manifest_verify_keys_raw: str = Field(
+        alias="LSC_MANIFEST_VERIFY_KEYS",
+        description="Comma-separated key_id:base64(pubkey) manifest verify keys.",
+    )
+
     # --- Request limits. ---
     max_body_bytes: int = Field(default=1_048_576, ge=1024)  # 1 MiB default
 
@@ -84,6 +93,32 @@ class Settings(BaseSettings):
         """True in the production environment (used to disable docs/OpenAPI UI)."""
 
         return self.environment is Environment.PROD
+
+    @property
+    def manifest_verify_keys(self) -> dict[str, bytes]:
+        """Parse pinned Ed25519 manifest verify keys into ``{key_id: pubkey}``.
+
+        Failure modes: ``ValueError`` if an entry is malformed or no keys are
+        configured (fail closed: unsigned/unpinned packages cannot be accepted).
+        """
+
+        import base64
+
+        keys: dict[str, bytes] = {}
+        for entry in self.manifest_verify_keys_raw.split(","):
+            entry = entry.strip()
+            if not entry:
+                continue
+            if ":" not in entry:
+                raise ValueError("manifest key entry must be 'key_id:base64'")
+            key_id, b64 = entry.split(":", 1)
+            raw = base64.b64decode(b64)
+            if len(raw) != 32:
+                raise ValueError(f"manifest key {key_id!r} must be 32 bytes")
+            keys[key_id.strip()] = raw
+        if not keys:
+            raise ValueError("at least one manifest verify key is required")
+        return keys
 
     @property
     def allowed_origins(self) -> tuple[str, ...]:

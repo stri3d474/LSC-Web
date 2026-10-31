@@ -20,9 +20,11 @@ from lsc_api.core.ratelimit import FirestoreTokenBucket
 from lsc_api.core.security.keyring import KeyRing
 from lsc_api.core.security.tokens import TokenService
 from lsc_api.infra.firestore import DocumentStore
+from lsc_api.infra.integrity import IntegrityVerifier
 from lsc_api.infra.oidc import OidcVerifier
 from lsc_api.infra.play import PlayClient
 from lsc_api.infra.secrets import SecretStore
+from lsc_api.infra.storage import BlobStore
 from lsc_api.modules.audit.repository import AuditRepository
 from lsc_api.modules.audit.service import AuditService
 from lsc_api.modules.billing.config import load_catalog
@@ -37,6 +39,9 @@ from lsc_api.modules.consent.service import ConsentService
 from lsc_api.modules.identity.ports import FirebaseVerifier
 from lsc_api.modules.identity.repository import IdentityRepository
 from lsc_api.modules.identity.service import IdentityService
+from lsc_api.modules.models.nonce import NonceStore
+from lsc_api.modules.models.repository import ModelRepository
+from lsc_api.modules.models.service import ModelService
 
 
 async def build_container(
@@ -47,6 +52,8 @@ async def build_container(
     firebase_verifier: FirebaseVerifier,
     play_client: PlayClient,
     oidc_verifier: OidcVerifier,
+    blob_store: BlobStore,
+    integrity_verifier: IntegrityVerifier,
     signing_kids: list[str],
     consent_purposes_path: Path,
     products_path: Path,
@@ -116,6 +123,24 @@ async def build_container(
     purposes = load_purposes(consent_purposes_path)
     consent_service = ConsentService(consent_repo, purposes, clk)
 
+    # Model registry + distribution.
+    model_repo = ModelRepository(document_store)
+    nonce_store = NonceStore(document_store, clk)
+    model_service = ModelService(
+        model_repo,
+        blob_store,
+        secret_store,
+        integrity_verifier,
+        entitlements_service,
+        nonce_store,
+        audit_service,
+        clk,
+        models_bucket=settings.bucket_models,
+        verify_keys=settings.manifest_verify_keys,
+        package_name=settings.play_package_name,
+        integrity_enforce=(settings.integrity_mode == "enforce"),
+    )
+
     rate_limiter = FirestoreTokenBucket(document_store, clk)
 
     return Container(
@@ -129,6 +154,7 @@ async def build_container(
         billing_service=billing_service,
         entitlements_service=entitlements_service,
         verification_service=verification_service,
+        model_service=model_service,
         rate_limiter=rate_limiter,
         oidc_verifier=oidc_verifier,
     )

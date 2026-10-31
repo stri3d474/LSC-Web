@@ -34,6 +34,21 @@ class BlobStore(Protocol):
         """Return whether an object exists."""
         ...
 
+    async def put_bytes(self, bucket: str, object_name: str, data: bytes) -> None:
+        """Upload raw bytes to a single object.
+
+        Failure modes: ``UpstreamError`` on write failure.
+        """
+        ...
+
+    async def get_bytes(self, bucket: str, object_name: str) -> bytes:
+        """Download a single object's bytes (used for stored manifest bytes).
+
+        Failure modes: ``NotFoundError`` if the object is missing;
+        ``UpstreamError`` on read failure.
+        """
+        ...
+
 
 def validate_ttl(ttl: timedelta) -> None:
     """Raise ``ValueError`` if ``ttl`` is non-positive or over the 10-minute cap."""

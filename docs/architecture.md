@@ -73,6 +73,30 @@ router  ->  service  ->  repository  ->  infra
 - Verification codes are single-use, expiring, high-entropy and stored hashed;
   redeeming grants `verified_deaf` + `community`, audited.
 
+## Model registry and distribution (W04)
+- Admin upload (`POST /admin/models`, admin + MFA, size-capped multipart): the
+  zip is read with zip-slip and decompression-bomb guards; the manifest is
+  parsed and its Ed25519 signature verified against pinned keys; every plain and
+  encrypted file hash is checked; blobs are stored under `packages/<version>/`
+  with the manifest bytes unchanged; the data key goes to Secret Manager as
+  `model-key-<version>` (never Firestore); the package is registered `draft`.
+- Lifecycle: `activate` (channel stable|beta, rollout basis points,
+  min_app_version), `deactivate`, list. Rollback = activate a higher re-issued
+  version (clients reject lower versions).
+- `GET /models/latest` picks the eligible active package (schema match,
+  app_version >= min_app_version, profile allowed by entitlement features,
+  deterministic per-uid rollout bucket) and returns the **stored manifest bytes
+  unchanged** so the client verifies the original signature (ADR 0002).
+- `GET /models/{v}/download` returns V4 signed URLs (<=10 min, one object each)
+  plus a single-use integrity nonce.
+- `POST /models/{v}/key` releases the data key only after verifying the
+  single-use nonce and the Play Integrity verdict (per `INTEGRITY_MODE`); fails
+  closed; responds `no-store`; the key is never logged.
+- Optional `POST /models/{v}/head:infer` (behind `SERVER_HEAD_ENABLED`) runs the
+  split-model head on CPU onnxruntime for `head_mode=server` packages; the head
+  blob is decrypted in memory (AES-256-GCM, AAD `<version>|head`); inputs are
+  never logged.
+
 ## Composition
 `composition.build_container` assembles the service `Container` from concrete
 infra adapters (DocumentStore, SecretStore, FirebaseVerifier) and attaches it to

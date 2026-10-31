@@ -10,7 +10,7 @@ from typing import Protocol
 
 
 class SecretStore(Protocol):
-    """Read-only access to versioned secrets."""
+    """Access to versioned secrets."""
 
     async def access(self, name: str, version: str = "latest") -> bytes:
         """Return the raw bytes of a secret version.
@@ -19,5 +19,13 @@ class SecretStore(Protocol):
         Outputs: the secret payload as bytes; callers decode as needed.
         Failure modes: ``NotFoundError`` if the secret/version does not exist;
         ``UpstreamError`` on access failure. Never logs the value.
+        """
+        ...
+
+    async def put(self, name: str, value: bytes) -> None:
+        """Create or add a version to a secret (e.g. ``model-key-<version>``).
+
+        The value is written only to Secret Manager, never to Firestore or logs.
+        Failure modes: ``UpstreamError`` on write failure.
         """
         ...

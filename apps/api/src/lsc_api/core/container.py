@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from lsc_api.modules.billing.verification_service import VerificationService
     from lsc_api.modules.consent.service import ConsentService
     from lsc_api.modules.identity.service import IdentityService
+    from lsc_api.modules.models.service import ModelService
 
 
 @dataclass(frozen=True)
@@ -51,5 +52,6 @@ class Container:
     billing_service: "BillingService"
     entitlements_service: "EntitlementsService"
     verification_service: "VerificationService"
+    model_service: "ModelService"
     rate_limiter: RateLimiter | None = None
     oidc_verifier: "OidcVerifier | None" = None
