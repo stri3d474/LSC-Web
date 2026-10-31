@@ -1,0 +1,7 @@
+{
+  "name": "@lsc/ui",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shared accessible React components for admin and listener.",
+  "type": "module"
+}

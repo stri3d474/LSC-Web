@@ -1,0 +1,3 @@
+# Retention periods per collection (Ley 1581 minimization). Populated by W05.
+# Every collection with user data gets a TTL field driven by these values.
+collections: []

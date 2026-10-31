@@ -1,0 +1,15 @@
+{
+  "name": "lsc-web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LSC backend (FastAPI) + React admin panel + React listener PWA.",
+  "packageManager": "pnpm@9.1.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "apps/admin",
+    "apps/listener",
+    "packages/*"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "@lsc/admin",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LSC admin panel (staff only, MFA required). Implemented in W06.",
+  "type": "module"
+}

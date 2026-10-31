@@ -1,0 +1,7 @@
+{
+  "name": "@lsc/api-client",
+  "private": true,
+  "version": "0.1.0",
+  "description": "TypeScript API client generated from the backend OpenAPI schema.",
+  "type": "module"
+}

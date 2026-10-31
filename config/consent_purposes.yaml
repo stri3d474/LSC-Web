@@ -1,0 +1,4 @@
+# Versioned consent purposes (C8). Populated by W02/W05.
+# Each purpose is separate, versioned and revocable. Legal text belongs to a
+# lawyer; this file holds the identifiers and current versions only.
+purposes: []

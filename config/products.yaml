@@ -1,0 +1,4 @@
+# Billing products and tiers (server-authoritative). Populated by W03.
+# The client never decides tier; entitlements are computed from verified
+# Play purchases and verification grants against these definitions.
+products: []

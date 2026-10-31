@@ -1,0 +1,7 @@
+{
+  "name": "@lsc/listener",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LSC listener PWA for hearing users. Implemented in W07.",
+  "type": "module"
+}
