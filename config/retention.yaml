@@ -1,3 +1,22 @@
-# Retention periods per collection (Ley 1581 minimization). Populated by W05.
-# Every collection with user data gets a TTL field driven by these values.
-collections: []
+# Retention periods per collection (Ley 1581 minimization, W05).
+# Each entry drives a TTL field on documents in that collection. Deletion of a
+# data subject is immediate (DELETE /me); these TTLs bound how long operational
+# and contributed data lives by default.
+#
+# ttl_days: null means "no automatic expiry" (e.g. consent history kept as
+# pseudonymized legal proof). All others expire via a TTL field.
+collections:
+  - name: sessions            # refresh families
+    ttl_days: 30
+  - name: corrections         # pseudonymous landmark contributions
+    ttl_days: 365
+  - name: export_jobs         # data-subject export job records
+    ttl_days: 7
+  - name: exports             # bucket: generated export zips
+    ttl_days: 1
+  - name: model_key_nonces    # single-use integrity nonces
+    ttl_days: 1
+  - name: audit_log           # hash-chained admin audit
+    ttl_days: 3650
+  - name: consents            # append-only consent history
+    ttl_days: null            # retained as pseudonymized legal proof

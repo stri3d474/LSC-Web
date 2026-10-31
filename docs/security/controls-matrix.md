@@ -25,6 +25,10 @@ land; W01 establishes the cross-cutting controls.
 | MODEL-04 | ASVS V2.9 (replay) | Single-use, short-TTL, (uid,version)-scoped integrity nonces | `apps/api/src/lsc_api/modules/models/nonce.py` |
 | MODEL-05 | ASVS V6.4 (key management), V8.1 | Data key only in Secret Manager (`model-key-<version>`); signed URLs <=10 min; key/URLs never logged; no-store | `apps/api/src/lsc_api/modules/models/service.py`, `apps/api/src/lsc_api/modules/models/router.py` |
 | MODEL-06 | ASVS V7.1 (logging) | Server-head inputs never logged; session reused | `apps/api/src/lsc_api/modules/models/head.py` |
+| PRIV-01 | Ley 1581 (minimization), ASVS V8.3 | Contributions stored under HMAC pseudonym; pepper in Secret Manager, never co-located | `apps/api/src/lsc_api/core/security/pseudonym.py`, `apps/api/src/lsc_api/modules/community/service.py` |
+| PRIV-02 | Ley 1581 (minimization) | Correction documents contain no uid/email/device id | `apps/api/src/lsc_api/modules/community/repository.py` |
+| PRIV-03 | Ley 1581 (purpose limitation) | Corrections require current landmark_contribution consent + guardian for minors; shape/size/dedupe/daily caps | `apps/api/src/lsc_api/modules/community/service.py` |
+| PRIV-04 | Ley 1581 (habeas data) | Export job + idempotent, resumable deletion; consent history kept pseudonymized | `apps/api/src/lsc_api/modules/privacy/service.py`, `config/retention.yaml` |
 | SEC-01  | ASVS V6.4 (secret management) | Secrets only from Secret Manager, fetched by name | `apps/api/src/lsc_api/infra/secrets.py` |
 | LOG-01  | ASVS V7.1 (logging), V8 (data protection) | Structured logs with PII/secret redaction; access log without bodies | `apps/api/src/lsc_api/core/logging.py`, `apps/api/src/lsc_api/core/middleware.py` |
 | ERR-01  | ASVS V7.4 (error handling) | problem+json with stable codes, no internals | `apps/api/src/lsc_api/core/errors.py` |

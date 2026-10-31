@@ -88,6 +88,13 @@ class Settings(BaseSettings):
     # --- Request limits. ---
     max_body_bytes: int = Field(default=1_048_576, ge=1024)  # 1 MiB default
 
+    # --- Landmark schema dimensions (W05 correction validation, C1). ---
+    # The active schema version and its frame vector size F and sequence length
+    # T. A correction's observed_sequence must be exactly T * F * 2 bytes (f16).
+    landmark_schema_version: int = Field(default=1, ge=1)
+    landmark_frame_vector_size: int = Field(gt=0, description="C1 F.")
+    landmark_sequence_length: int = Field(default=32, gt=0, description="C1 T.")
+
     @property
     def is_prod(self) -> bool:
         """True in the production environment (used to disable docs/OpenAPI UI)."""

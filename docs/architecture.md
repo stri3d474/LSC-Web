@@ -97,6 +97,26 @@ router  ->  service  ->  repository  ->  infra
   blob is decrypted in memory (AES-256-GCM, AAD `<version>|head`); inputs are
   never logged.
 
+## Community and privacy (W05)
+- Vocabulary: concepts and variants are versioned with a monotonic
+  `vocabulary_version`; deletes become tombstones. `GET /vocabulary?since=`
+  returns changes (including tombstones). Admin/reviewer CRUD under
+  `/admin/vocabulary` (MFA).
+- Corrections (`POST /corrections`): require a current `landmark_contribution`
+  consent (guardian for minors), validate the landmark blob to exactly
+  `T*F*2` bytes (C1), enforce per-user daily limits and content-hash dedupe, and
+  store the blob under a pseudonymous contributor id
+  (`HMAC-SHA256(uid, pepper)`) in the `datasets` bucket. The metadata document
+  contains no uid.
+- Reviewer workflow (`/admin/corrections`): list by status, approve/reject with
+  a reason, and bulk-export approved items as JSONL (training-importer schema)
+  via a short-lived signed URL.
+- Privacy: `GET /me/data-export` enqueues an export job (`JobQueue` over
+  Pub/Sub) and returns a 24 h signed URL when ready; `DELETE /me` is idempotent
+  and resumable (sessions → Firebase user → personal docs → contributions),
+  keeping consent history pseudonymized as legal proof. `config/retention.yaml`
+  sets per-collection TTLs. Processors are listed in `docs/privacy/processors.md`.
+
 ## Composition
 `composition.build_container` assembles the service `Container` from concrete
 infra adapters (DocumentStore, SecretStore, FirebaseVerifier) and attaches it to

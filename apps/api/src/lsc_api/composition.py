@@ -21,6 +21,7 @@ from lsc_api.core.security.keyring import KeyRing
 from lsc_api.core.security.tokens import TokenService
 from lsc_api.infra.firestore import DocumentStore
 from lsc_api.infra.integrity import IntegrityVerifier
+from lsc_api.infra.jobqueue import JobQueue
 from lsc_api.infra.oidc import OidcVerifier
 from lsc_api.infra.play import PlayClient
 from lsc_api.infra.secrets import SecretStore
@@ -39,9 +40,15 @@ from lsc_api.modules.consent.service import ConsentService
 from lsc_api.modules.identity.ports import FirebaseVerifier
 from lsc_api.modules.identity.repository import IdentityRepository
 from lsc_api.modules.identity.service import IdentityService
+from lsc_api.modules.community.repository import CommunityRepository
+from lsc_api.modules.community.review_service import ReviewService
+from lsc_api.modules.community.service import CommunityService
 from lsc_api.modules.models.nonce import NonceStore
 from lsc_api.modules.models.repository import ModelRepository
 from lsc_api.modules.models.service import ModelService
+from lsc_api.modules.privacy.ports import FirebaseUserAdmin
+from lsc_api.modules.privacy.repository import PrivacyRepository
+from lsc_api.modules.privacy.service import PrivacyService
 
 
 async def build_container(
@@ -54,6 +61,8 @@ async def build_container(
     oidc_verifier: OidcVerifier,
     blob_store: BlobStore,
     integrity_verifier: IntegrityVerifier,
+    job_queue: JobQueue,
+    firebase_user_admin: FirebaseUserAdmin,
     signing_kids: list[str],
     consent_purposes_path: Path,
     products_path: Path,
@@ -141,6 +150,44 @@ async def build_container(
         integrity_enforce=(settings.integrity_mode == "enforce"),
     )
 
+    # Community (vocabulary + corrections) and reviewer workflow.
+    community_repo = CommunityRepository(document_store)
+    community_service = CommunityService(
+        community_repo,
+        consent_service,
+        blob_store,
+        secret_store,
+        audit_service,
+        clk,
+        datasets_bucket=settings.bucket_datasets,
+        expected_frame_vector_size=settings.landmark_frame_vector_size,
+        sequence_length=settings.landmark_sequence_length,
+        schema_version=settings.landmark_schema_version,
+    )
+    review_service = ReviewService(
+        community_repo,
+        blob_store,
+        audit_service,
+        clk,
+        exports_bucket=settings.bucket_exports,
+    )
+
+    # Privacy (export + deletion).
+    privacy_repo = PrivacyRepository(document_store)
+    privacy_service = PrivacyService(
+        privacy_repo,
+        identity_repo,
+        firebase_user_admin,
+        job_queue,
+        secret_store,
+        audit_service,
+        blob_store,
+        document_store,
+        clk,
+        exports_bucket=settings.bucket_exports,
+        datasets_bucket=settings.bucket_datasets,
+    )
+
     rate_limiter = FirestoreTokenBucket(document_store, clk)
 
     return Container(
@@ -155,6 +202,9 @@ async def build_container(
         entitlements_service=entitlements_service,
         verification_service=verification_service,
         model_service=model_service,
+        community_service=community_service,
+        review_service=review_service,
+        privacy_service=privacy_service,
         rate_limiter=rate_limiter,
         oidc_verifier=oidc_verifier,
     )

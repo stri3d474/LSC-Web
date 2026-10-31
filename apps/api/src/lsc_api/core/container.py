@@ -29,9 +29,12 @@ if TYPE_CHECKING:
     from lsc_api.modules.billing.entitlements import EntitlementsService
     from lsc_api.modules.billing.service import BillingService
     from lsc_api.modules.billing.verification_service import VerificationService
+    from lsc_api.modules.community.review_service import ReviewService
+    from lsc_api.modules.community.service import CommunityService
     from lsc_api.modules.consent.service import ConsentService
     from lsc_api.modules.identity.service import IdentityService
     from lsc_api.modules.models.service import ModelService
+    from lsc_api.modules.privacy.service import PrivacyService
 
 
 @dataclass(frozen=True)
@@ -53,5 +56,8 @@ class Container:
     entitlements_service: "EntitlementsService"
     verification_service: "VerificationService"
     model_service: "ModelService"
+    community_service: "CommunityService"
+    review_service: "ReviewService"
+    privacy_service: "PrivacyService"
     rate_limiter: RateLimiter | None = None
     oidc_verifier: "OidcVerifier | None" = None

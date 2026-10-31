@@ -34,9 +34,11 @@ from lsc_api.core.middleware import (
 )
 from lsc_api.core.security.deps import public
 from lsc_api.modules.billing.router import router as billing_router
+from lsc_api.modules.community.router import router as community_router
 from lsc_api.modules.consent.router import router as consent_router
 from lsc_api.modules.identity.router import router as identity_router
 from lsc_api.modules.models.router import router as models_router
+from lsc_api.modules.privacy.router import router as privacy_router
 
 _LOG = get_logger("lsc_api.main")
 
@@ -150,5 +152,7 @@ def create_app(
     app.include_router(consent_router)
     app.include_router(billing_router)
     app.include_router(models_router)
+    app.include_router(community_router)
+    app.include_router(privacy_router)
 
     return app
